@@ -231,7 +231,30 @@ int TauDecayMode::getDecayMode( int tauPtr )
 {
   _mode = 0;
   Belle2::StoreArray<Belle2::MCParticle> mcList;
-  std::vector<Belle2::MCParticle*> tauDaugVector = mcList[tauPtr]->getDaughters();
+ //  std::vector<Belle2::MCParticle*> tauDaugVector = mcList[tauPtr]->getDaughters();
+
+  // ----------------------------------------------------------------
+  // identify decays via a W-boson
+  // ----------------------------------------------------------------
+  int ptr = 0;
+  bool wDecay = false;
+  std::vector<Belle2::MCParticle*> tauDV = mcList[tauPtr]->getDaughters();
+  for(unsigned int i=0; i<tauDV.size(); i++) {
+     if( abs(tauDV[i]->getPDG()) == abs(PdtLund::W_plus) )  { 
+         ptr = i;
+         wDecay = true;
+         break;
+     }     
+  }
+  if( wDecay ) std::cout << "===>RJS: this is a W decay - nsize = " << tauDV.size() << std::endl;
+
+  std::vector<Belle2::MCParticle*> tauDaugVector;
+  if( wDecay) {
+      tauDaugVector = tauDV[ ptr ]->getDaughters();
+  } else {
+      tauDaugVector = mcList[tauPtr]->getDaughters();
+  }
+
 
   // ----------------------------------------------------------------
   // count number of first decay particles (excluding neutrinos/gammas)
@@ -244,7 +267,7 @@ int TauDecayMode::getDecayMode( int tauPtr )
         abs(tauDaugVector[i]->getPDG()) != abs(PdtLund::nu_tau)  )  nFirst++;
   }
 
-  // std::cout << "nFirst = " << nFirst << std::endl;
+  std::cout << "nFirst = " << nFirst << std::endl;
 
   // ----------------------------------------------------------------
   // count all particle-types in first decay
@@ -278,16 +301,15 @@ int TauDecayMode::getDecayMode( int tauPtr )
      else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::K0      ) )     { _nK0++;     resPtr   = i; }
      else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::K_star_plus ) ) { _nKstarp++; kstarPtr = i; }
      else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::a_1_plus) )     { _na1++;     a1Ptr    = i; }
-     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::W_plus  ) )     { _nw++;      wPtr     = i; }
+     //else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::W_plus  ) )     { _nw++;      wPtr     = i; }
 
      else { std::cout << "===>RJS: Did not find the particle " << tauDaugVector[i]->getPDG() << std::endl; }
   }
 
-
   // ----------------------------------------------------------------
   // decays with a single primary decay particle
   // ----------------------------------------------------------------
-  if( nFirst == 1 )  {
+  if( nFirst == 1 && !wDecay )  {
     if(       _nele == 1 ) { _mode=1; }  // e
      else if( _nmu  == 1 ) { _mode=2; }  // mu
      else if( _npi  == 1 ) { _mode=3; }  // pi
@@ -301,7 +323,12 @@ int TauDecayMode::getDecayMode( int tauPtr )
          else                                 { _mode = 13; } // other a1 decays
     } // end-a1
 
-    else if( _nw  == 1 ) {              // W -> quark-quark 
+  if( wDecay ) _mode = -1;
+  std::cout << "===>RJS: temporary exit with mode = " << _mode << std::endl;
+  return _mode;
+
+
+    if( nFirst == 1 && wDecay ) {              // W -> quark-quark 
        countResonanceParticles( tauPtr, wPtr );
        int Strange =   (_nresK >=1   || _nresKS >=1 || _nresKL >=1);
        int Resonance = (_nreseta >=1 || _nresetap >=1);
@@ -410,6 +437,9 @@ int TauDecayMode::getDecayMode( int tauPtr )
 
    if( _mode ==0 ) _mode = 999;
   }
+
+  std::cout << "===>RJS: temporary exit with mode = " << _mode << std::endl;
+  return _mode;
 
   // ---------------------------------------------------
   // 2-body decays (excluding neutrinos and photons)
