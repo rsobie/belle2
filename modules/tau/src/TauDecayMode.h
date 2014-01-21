@@ -5,10 +5,19 @@
 // December 2013
 // ----------------------------------------------------------------
 // Modes: (drop neutrinos)
+
+// nFirst = 1 and not-W decay:
 // 1 		e- 
 // 2		mu-
 // 3		pi-
 // 4 		K-
+// 5            rho- (assuming all decays to pi+ pi-)
+// 11           a1- -> pi- pi- pi+
+// 12           a1- -> pi- pi0 pi0 
+// 13           a1 other decays
+// 51           K*- -> pi0 K-
+// 52           K*- -> pi- KL
+// 53           K*- -> pi- KS
 
 // ----------------------------------------------------------------
 
@@ -26,9 +35,11 @@ public:
   void printTauMCInfo   ( int );
   void printFinalState  ( int );
   void countMesons      ( int, int );
-  void countResonanceParticles ( int, int );
+  int countResonanceParticles ( int, int );
   int  getDecayMode     ( int );
   int  getNumberProngs  ( int );
+ 
+  int countParticles(   std::vector<Belle2::MCParticle*>  );
 
 private:
   int _tauPtr;
@@ -158,7 +169,7 @@ void TauDecayMode::printFinalState( int tauPtr )
 
    std::cout << "  Daughters : "; 
    for(unsigned int i=0; i<tauDaugVector.size(); i++) {
-       std::cout << std::setw(6) << tauDaugVector[i]->getPDG();
+       std::cout << std::setw(8) << tauDaugVector[i]->getPDG();
    }
    std::cout << std::endl;
 
@@ -181,7 +192,7 @@ void TauDecayMode::printFinalState( int tauPtr )
   // -----------------------------------------------
   // search for resonances (omega, eta, f1, a1, K0s)
   // -----------------------------------------------
-  if( _neta==0 && _nomega==0 && _nf1==0 && _na1==0 ) return;
+  if( _neta!=1 && _nomega!=0 ) return;
 
   int rPtr = 0;
   for(unsigned int i=0; i<tauDaugVector.size(); i++) {
@@ -193,9 +204,11 @@ void TauDecayMode::printFinalState( int tauPtr )
   if( rPtr == 0 ) return;
   std::vector<Belle2::MCParticle*> daugVector = tauDaugVector[rPtr]->getDaughters();
 
-  std::cout << "===>RJS test: " << tauDaugVector[rPtr]->getPDG() <<" "
-            << daugVector.size() << std::endl;
-
+  std::cout << "===>RJS test: " << tauDaugVector[rPtr]->getPDG() << "  Daughters : ";
+   for(unsigned int i=0; i<daugVector.size(); i++) {
+       std::cout << std::setw(6) << daugVector[i]->getPDG();
+   }
+   std::cout << std::endl;
 
 }
 
@@ -234,8 +247,10 @@ void TauDecayMode::countMesons( int tauPtr, int ptr )
 // ----------------------------------------------------------------
 // count resonance particles
 // ----------------------------------------------------------------
-void TauDecayMode::countResonanceParticles( int tauPtr, int ptr ) 
+int TauDecayMode::countResonanceParticles( int tauPtr, int ptr ) 
 {
+   int nResParticles = 0;
+
    _nrespi=0;  _nrespi0=0; _nresgam=0; 
    _nresK=0; _nresKS=0; _nresKL=0; _nresK0=0;
    _nreseta=0; _nresetap=0; _nresomega=0;
@@ -245,7 +260,6 @@ void TauDecayMode::countResonanceParticles( int tauPtr, int ptr )
  
    std::vector<Belle2::MCParticle*> rDaugVector = tauDaugVector[ptr]->getDaughters();
    for(unsigned int i=0; i<rDaugVector.size(); i++) {
-       //       std::cout << i << " pid = " << rDaugVector[i]->getPDG() << std::endl;
        if(      abs(rDaugVector[i]->getPDG()) == abs(PdtLund::pi_plus   ) ) _nrespi++;
        else if( abs(rDaugVector[i]->getPDG()) == abs(PdtLund::pi0       ) ) _nrespi0++;
        else if( abs(rDaugVector[i]->getPDG()) == abs(PdtLund::gamma     ) ) _nresgam++;
@@ -258,16 +272,19 @@ void TauDecayMode::countResonanceParticles( int tauPtr, int ptr )
        else if( abs(rDaugVector[i]->getPDG()) == abs(PdtLund::K_L0      ) ) _nresKL++;
        else { std::cout << "===>RJS: Unidentified resonance decay particle " 
                         << rDaugVector[i]->getPDG() << std::endl; }
+       if( rDaugVector[i]->getPDG() != PdtLund::gamma ) nResParticles++;
      }
 
        std::cout << std::setw(3) << std::setprecision(0);
        std::cout << "Resonance: " << tauDaugVector[ptr]->getPDG()
-             << " (g) (pi pi0 eta etap omega) (K K0 KS KL) = "
+             << " N (g) (pi pi0 eta etap omega) (K K0 KS KL) = "
+             << std::setw(3) << nResParticles
              << std::setw(3) << _nresgam
              << std::setw(3) << _nrespi << _nrespi0 << _nreseta << _nresetap << _nomega
              << std::setw(3) << _nresK  << _nresK0 << _nresKS << _nresKL
              << std::endl;
 
+   return nResParticles;
 }
 
 
@@ -278,7 +295,6 @@ int TauDecayMode::getDecayMode( int tauPtr )
 {
   _mode = 0;
   Belle2::StoreArray<Belle2::MCParticle> mcList;
- //  std::vector<Belle2::MCParticle*> tauDaugVector = mcList[tauPtr]->getDaughters();
 
   // ----------------------------------------------------------------
   // identify decays via a W-boson
@@ -293,7 +309,6 @@ int TauDecayMode::getDecayMode( int tauPtr )
          break;
      }     
   }
-  if( _wDecay ) std::cout << "===>RJS: this is a W decay - nsize = " << tauDV.size() << std::endl;
 
   std::vector<Belle2::MCParticle*> tauDaugVector;
   if( _wDecay) {
@@ -314,61 +329,15 @@ int TauDecayMode::getDecayMode( int tauPtr )
         abs(tauDaugVector[i]->getPDG()) != abs(PdtLund::nu_tau)  )  nFirst++;
   }
 
-  std::cout << "nFirst = " << nFirst << std::endl;
-
   // ----------------------------------------------------------------
   // count all particle-types in first decay
   // ----------------------------------------------------------------
-  int tauDecayMode(0);
-  int resPtr(0);
-  int wPtr(0), a1Ptr(0), kstarPtr(0);
+  int resPtr = countParticles( tauDaugVector );
 
-   _nnue=0;   _nnum=0;  _nnut=0;
-   _ng=0;     _nele=0;  _nmu=0;
-   _npi0=0;  _nrho=0;  _na1=0;  _nw=0;
-   _nomega=0; _neta=0;  _nf1=0;
-   _nK0=0;   _nKL=0;   _nKS=0;   _nKstar0=0;  _nKstarp=0;
- 
-   _npi=0; _npip=0; _npim=0;
-   _nK=0;  _nKp=0;  _nKm=0;
 
-  for(unsigned int i=0; i<tauDaugVector.size(); i++) {
-     if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::gamma   ) ) {  _ng++; }
-
-     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::nu_e    ) ) { _nnue++; }
-     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::nu_mu   ) ) { _nnum++; }
-     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::nu_tau  ) ) { _nnut++; }
-
-     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::e_plus  ) ) { _nele++; }
-     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::mu_plus ) ) { _nmu++;  }
-     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::pi0     ) ) { _npi0++; }
-     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::rho_plus) ) { _nrho++; }
-     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::omega   ) ) { _nomega++;   }
-     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::eta     ) ) { _neta++;   }
-     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::f_1     ) ) { _nf1++;   }
-
-     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::pi_plus) ) { 
-          _npi++;  
-          if( tauDaugVector[i]->getPDG() == PdtLund::pi_plus       ) _npip++;  
-          if( tauDaugVector[i]->getPDG() == PdtLund::pi_minus      ) _npim++;  
-          }
-
-     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::K_plus) )  {
-          _nK++;   
-          if( tauDaugVector[i]->getPDG() == PdtLund::K_plus        ) _nKp++;   
-          if( tauDaugVector[i]->getPDG() == PdtLund::K_minus       ) _nKm++;
-          }
-
-     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::K_S0    ) ) _nKS++;
-     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::K_L0    ) ) _nKL++;
-
-     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::K0      ) )     { _nK0++;     resPtr   = i; }
-     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::K_star_plus ) ) { _nKstarp++; kstarPtr = i; }
-     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::a_1_plus) )     { _na1++;     a1Ptr    = i; }
-     //else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::W_plus  ) )     { _nw++;      wPtr     = i; }
-
-     else { std::cout << "===>RJS: Did not find the particle " << tauDaugVector[i]->getPDG() << std::endl; }
-  }
+//  int tauDecayMode(0);
+  int wPtr(0),  kstarPtr(0);
+  int nP;
 
   // ----------------------------------------------------------------
   // decays with a single primary decay particle
@@ -381,40 +350,81 @@ int TauDecayMode::getDecayMode( int tauPtr )
      else if( _nrho == 1 ) { _mode=5; }  // rho
 
      else if (_na1  == 1 ) {             // a1
-        countResonanceParticles( tauPtr, a1Ptr );
-        if(        _nrespi==3 && _nrespi0==0) { _mode = 11; } // a1- -> pi- pi- pi+
-         else if(  _nrespi==1 && _nrespi0==2) { _mode = 12; } // a1- -> pi- pi0 pi0
-         else                                 { _mode = 13; } // other a1 decays
+        nP = countResonanceParticles( tauPtr, resPtr );
+        if(        nP==3 && _nrespi==3 && _nrespi0==0) { _mode = 11; } // a1- -> pi- pi- pi+
+         else if(  nP==3 && _nrespi==1 && _nrespi0==2) { _mode = 12; } // a1- -> pi- pi0 pi0
+         else                                          { _mode = 13; } // other a1 decays
      } // end-a1
+
+     else if (_nKstarp  == 1 ) {        // K*-
+        nP = countResonanceParticles( tauPtr, resPtr );
+        if(        nP==2 && _nrespi0==1 && _nresK==1)  { _mode = 51; } // K*- -> pi0 K-
+         else if(  nP==2 && _nrespi==1  && _nresKL==1) { _mode = 52; } // K*- -> pi- KL
+         else if(  nP==2 && _nrespi==1  && _nresKS==1) { _mode = 53; } // K*- -> pi- KS
+         else                                          { _mode = 59; } // other K*- decays
+     }  // end-K*-
+
+     else { _mode = 99; }
 
   } // end-NF1 non-W
 
-  // temporarily flip the sign
-  if( _mode != 0 ) _mode = - _mode;
 
   if( _wDecay ) std::cout << "===>RJS: W-decay nFirst = " << nFirst 
                          << " (pi pi0) = " << _npi << _npi0 << std::endl;
 
-  if( nFirst == 2 && _wDecay ) {              // W -> quark-quark
-     if( _npi==1 && _neta==1 )    { _mode = 1200; } // W -> eta pi-
-     if( _npi==1 && _nomega==1 )  { _mode = 1210; } // W -> omegaa pi-
+  // ---------------------------------------------------------------------
+  // W decays
+  // ---------------------------------------------------------------------
+  if( nFirst == 2 && _wDecay ) {             
+     if(      _npi==1 && _npi0==1 && _ng>=1 )  { _mode = 1200; } // W -> pi- pi0 (>= 1gamma)
+     else if( _npi==1 && _neta==1 )            { _mode = 1210; } // W -> pi- eta   (** none observed **)
+     else if( _npi==1 && _nomega==1 )          { _mode = 1220; } // W -> pi- omega (** none observed **)
+     else if( _nK==1  && _nKL==1    )          { _mode = 1230; } // W -> K- KL
+     else if( _nK==1  && _nKS==1    )          { _mode = 1240; } // W -> K- KS
+     else                                      { _mode = 1299; } // other 2-body W-decays
   }
 
-  if( nFirst == 3 && _wDecay ) {              // W -> quark-quark
-     if( _npi==2 && _nK==1 )    { _mode = 1300; } // W -> K- pi+ pi-
+  // Notes: 
+  // (i)   W -> Kpipi (K has same charge as tau/W)
+  // (ii)  pi- KL KL and pi- KS KS are odd decays
+  // (iii) no K-K-K+ decays observed in the MC
+  if( nFirst == 3 && _wDecay ) {             
+    if(       _npi==1 && _npi0==1 && _neta==1   )     { _mode = 1300; } // W -> pi- pi0 eta
+     else if( _npi==1 && _npi0==1 && _neta==1   )     { _mode = 1310; } // W -> pi- pi0 omega
+     else if( _npi==1 && _npi0==1 && _nKL==1    )     { _mode = 1320; } // W -> pi- pi0 KL
+     else if( _npi==1 && _npi0==1 && _nKS==1    )     { _mode = 1321; } // W -> pi- pi0 KS
+     else if( _npi==1 && _nKL==1  && _nKS==1    )     { _mode = 1330; } // W -> pi- KL KS
+     else if( _npi==1 && _nKL==2                )     { _mode = 1331; } // W -> pi- KL KL
+     else if( _npi==1 && _nKS==2                )     { _mode = 1332; } // W -> pi- KS KS
+     else if( _npi==1 && _nK==2                 )     { _mode = 1335; } // W -> pi- K- K+
+
+     else if( _nK==1  && _npi==2                )     { _mode = 1340; } // W -> K-  pi+ pi-
+     else if( _nK==1  && _npi0==2               )     { _mode = 1341; } // W -> K-  pi0 pi0
+     else if( _nK==1  && _npi0==1 && _nKL==1    )     { _mode = 1350; } // W -> K-  pi0 KL
+     else if( _nK==1  && _npi0==1 && _nKS==1    )     { _mode = 1351; } // W -> K-  pi0 KS
+
+     else if( _nK==3                            )     { _mode = 1360; } // W -> K-  K- K+ (** none observed **)
+     else                                             { _mode = 1399; } // other 3-body W-decays
   }
 
-
-  if( nFirst == 4 && _wDecay ) {              // W -> quark-quark
-     if( _npi==1 && _npi0==3 )    { _mode = 1400; } // W -> pi 3pi0
-     if( _npi==3 && _npi0==1 )    { _mode = 1410; } // W -> 3pi pi0
+  if( nFirst == 4 && _wDecay ) {             
+     if(      _npi==1 && _npi0==3 )    { _mode = 1400; } // W -> pi 3pi0
+     else if( _npi==3 && _npi0==1 )    { _mode = 1410; } // W -> 3pi pi0
+     else                              { _mode = 1499; } // other 4-body W-decays
   }
 
-  if( nFirst == 5 && _wDecay ) {              // W -> quark-quark
-     if( _npi==5  )    { _mode = 1500; } // W -> pi 3pi0
+  if( nFirst == 5 && _wDecay ) {             
+     if(      _npi==5  )               { _mode = 1500; } // W -> 5pi
+     else if( _npi==3 && _npi0==2 )    { _mode = 1510; } // W -> 3pi 2pi0 
+     else if( _npi==1 && _npi0==4 )    { _mode = 1520; } // W ->  pi 4pi0
+     else                              { _mode = 1599; } // other 5-body W-decays
   }
 
-  std::cout << "===>RJS: temporary exit with mode = " << _mode << std::endl;
+  if( nFirst == 6 && _wDecay ) {
+     if( _npi==6 && _npi0==1  )        { _mode = 1600; } // W -> 5pi pi0
+     else                              { _mode = 1699; } // other 6-body W-decays
+  }
+
   return _mode;
 
 
@@ -802,7 +812,74 @@ int TauDecayMode::getDecayMode( int tauPtr )
   if( _nK==1 && _npi==0 && _npi0==0) return (int)40;  // K-
 
 
-  return tauDecayMode;
+  return (int)99;
 }
 
+// *******************************************************************
+// Count the types of daughter particles
+// *******************************************************************
+int TauDecayMode::countParticles(   std::vector<Belle2::MCParticle*> tauDaugVector ) 
+{
+   // ---------------------------------------------
+   // get the list of daughter particles
+   // ---------------------------------------------
+//   Belle2::StoreArray<Belle2::MCParticle> mcList;
+//   std::vector<Belle2::MCParticle*> tauDaugVector = mcList[tauPtr]->getDaughters();
 
+   // ---------------------------------------------
+   // initialize counters
+   // ---------------------------------------------
+   int ptr = 0;
+
+   // photons
+   _ng = 0;
+   // leptons
+   _nnue=0;   _nnum=0;  _nnut=0; _nele=0;  _nmu=0;
+   // primary mesons
+   _npi=0;    _npip=0;  _npim=0;
+   _npi0=0;   _nrho=0;  _na1=0;  
+   _nomega=0; _neta=0;  _nf1=0;
+   // strange mesons
+   _nK=0;       _nKp=0;     _nKm=0;
+   _nK0=0;      _nKL=0;     _nKS=0;   
+   _nKstar0=0;  _nKstarp=0;
+
+  for(unsigned int i=0; i<tauDaugVector.size(); i++) {
+     if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::gamma   ) ) {  _ng++; }
+
+     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::nu_e    ) ) { _nnue++; }
+     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::nu_mu   ) ) { _nnum++; }
+     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::nu_tau  ) ) { _nnut++; }
+
+     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::e_plus  ) ) { _nele++; }
+     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::mu_plus ) ) { _nmu++;  }
+     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::pi0     ) ) { _npi0++; }
+     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::rho_plus) ) { _nrho++; }
+     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::omega   ) ) { _nomega++;   }
+     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::eta     ) ) { _neta++;   }
+     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::f_1     ) ) { _nf1++;   }
+
+     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::pi_plus) ) {
+          _npi++;
+          if( tauDaugVector[i]->getPDG() == PdtLund::pi_plus       ) _npip++;
+          if( tauDaugVector[i]->getPDG() == PdtLund::pi_minus      ) _npim++;
+          }
+
+     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::K_plus) )  {
+          _nK++;
+          if( tauDaugVector[i]->getPDG() == PdtLund::K_plus        ) _nKp++;
+          if( tauDaugVector[i]->getPDG() == PdtLund::K_minus       ) _nKm++;
+          }
+
+     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::K_S0    ) ) _nKS++;
+     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::K_L0    ) ) _nKL++;
+
+     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::K0      ) )     { _nK0++;     ptr = i; }
+     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::K_star_plus ) ) { _nKstarp++; ptr = i; }
+     else if( abs(tauDaugVector[i]->getPDG()) == abs(PdtLund::a_1_plus) )     { _na1++;     ptr = i; }
+
+     else { std::cout << "===>RJS: CountParticle--unknown particle " << tauDaugVector[i]->getPDG() << std::endl; }
+  }
+
+  return ptr;
+}
