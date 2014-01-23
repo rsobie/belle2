@@ -370,7 +370,42 @@ int TauDecayMode::getDecayMode( int tauPtr )
   } // end-NF1 non-W
 
   if( nFirst == 2 && !_wDecay )  {
-    _mode = 199;
+    if(      _npi==1     && _nf1==1)       { _mode = 110; }   // pi- f1
+    else if( _nK==1      && _neta==1   )   { _mode = 120; }   // K- eta
+    else if( _nKstarp==1 && _neta==1   )   { _mode = 130; }   // K*- eta
+    else if( _nK==1      && _nomega==1 )   { _mode = 140; }   // K- omega
+    else if( _nKstarp==1 && _nomega==1 )   { _mode = 150; }   // K*- omega
+    else                                   { _mode = 199; }   // other 2-body decays
+    return _mode;
+  }
+
+  if( nFirst == 3 && !_wDecay )  {
+    if(      _npi==1     && _npi0==1 && _neta==1   )   { _mode = 210; }   // pi- pi0 eta
+    else if( _npi==1     && _npi0==1 && _nomega==1 )   { _mode = 220; }   // pi- pi0 oega
+    else _mode = 299;
+    return _mode;
+  }
+
+  if( nFirst == 4 && !_wDecay )  {
+    if(      _npi==1  && _npi0==3               )   { _mode = 301; }   // pi- 3pi0 (** none observed **) 
+    else if( _nK==1   && _npi0==3               )   { _mode = 302; }   // K-  3pi0
+    else if( _npi==1  && _npi0==1 && _nK==2     )   { _mode = 303; }   // pi- K+ K- pi0 
+    else if( _npi==1  && _npi0==2 && _neta==1   )   { _mode = 310; }   // pi- 2pi0 eta
+    else if( _npi==1  && _npi0==2 && _nomega==1 )   { _mode = 320; }   // pi- 2pi0 omega (** none observed **)
+    else if( _npi==2  && _npi0==1 && _nK==1     )   { _mode = 330; }   // pi- pi+ K- pi0 
+    else if( _npi==1  && _npi0==2 && _nK0==1    )   { _mode = 340; }   // pi- pi0 pi0 K0 
+    else if( _npi==1  && _npi0==1 && _nK0==2    )   { _mode = 350; }   // pi- pi0 K0 K0
+    else if( _npi==3  && _neta==1               )   { _mode = 360; }   // pi- pi- pi+ eta
+    else if( _npi==3  && _nomega==1             )   { _mode = 370; }   // pi- pi- pi+ omega
+    else if( _npi==3  && _nK0==1                )   { _mode = 380; }   // pi- pi- pi+ K0
+    else if( _nK==1   && _npi0==3               )   { _mode = 390; }   // K- 3pi0 
+    else _mode = 399;
+    return _mode;
+  }
+
+  if( nFirst >= 5 && !_wDecay )  {
+    if( _npi==1  && _npi0==4 )   { _mode = 401; }   // pi- 4pi0 
+    else  _mode = 499;
     return _mode;
   }
 

@@ -95,10 +95,10 @@ void tauModule::event()
   //myMode.printTauMCInfo( tauMinus );
 
   int tmp1 = myMode.getDecayMode ( tauPlus );
-  if(tmp1>1000 ) myMode.printFinalState( tauPlus );
+  if(tmp1==499 ) myMode.printFinalState( tauPlus );
 
   int tmp2 = myMode.getDecayMode ( tauMinus );
-  if(tmp2>1000 ) myMode.printFinalState( tauMinus );
+  if(tmp2==499 ) myMode.printFinalState( tauMinus );
 
   std::cout << "tau decay modes : " << tmp1 <<" "<< tmp2 << std::endl;
 
