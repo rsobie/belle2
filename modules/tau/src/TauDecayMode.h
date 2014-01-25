@@ -49,7 +49,7 @@ public:
   int  _ptr;
 
 
-  bool _Resonance, _Strange;
+  //  bool _Resonance, _Strange;
   int _nnue, _nnum, _nnut;
   int _ng, _nele, _nmu,  _npi0, _nrho, _na1, _nw;
   int _nomega, _neta, _nf1;
@@ -293,7 +293,7 @@ int TauDecayMode::countResonanceParticles( int tauPtr, int ptr )
 // ----------------------------------------------------------------
 int TauDecayMode::getDecayMode( int tauPtr ) 
 {
-  _mode = 0;
+  _mode = 9999;
   Belle2::StoreArray<Belle2::MCParticle> mcList;
 
   // ----------------------------------------------------------------
@@ -334,83 +334,78 @@ int TauDecayMode::getDecayMode( int tauPtr )
   // ----------------------------------------------------------------
   int resPtr = countParticles( tauDaugVector );
 
-
-//  int tauDecayMode(0);
-  int wPtr(0),  kstarPtr(0);
-  int nP;
-
   // ----------------------------------------------------------------
   // decays with a single primary decay particle
   // ----------------------------------------------------------------
+  int nP;
   if( nFirst == 1 && !_wDecay )  {
-    if(       _nele == 1 ) { _mode=1; }  // e
-     else if( _nmu  == 1 ) { _mode=2; }  // mu
-     else if( _npi  == 1 ) { _mode=3; }  // pi
-     else if( _nK   == 1 ) { _mode=4; }  // K
-     else if( _nrho == 1 ) { _mode=5; }  // rho
-
-     else if (_na1  == 1 ) {             // a1
-        nP = countResonanceParticles( tauPtr, resPtr );
-        if(        nP==3 && _nrespi==3 && _nrespi0==0) { _mode = 11; } // a1- -> pi- pi- pi+
-         else if(  nP==3 && _nrespi==1 && _nrespi0==2) { _mode = 12; } // a1- -> pi- pi0 pi0
-         else                                          { _mode = 13; } // other a1 decays
-     } // end-a1
-
-     else if (_nKstarp  == 1 ) {        // K*-
-        nP = countResonanceParticles( tauPtr, resPtr );
-        if(        nP==2 && _nrespi0==1 && _nresK==1)  { _mode = 51; } // K*- -> pi0 K-
-         else if(  nP==2 && _nrespi==1  && _nresKL==1) { _mode = 52; } // K*- -> pi- KL
-         else if(  nP==2 && _nrespi==1  && _nresKS==1) { _mode = 53; } // K*- -> pi- KS
-         else                                          { _mode = 59; } // other K*- decays
-     }  // end-K*-
-
-     else { _mode = 99; }
-
+    if(       _nele == 1 )                            { _mode=1; }  // e
+    else if( _nmu  == 1 )                             { _mode=2; }  // mu
+    else if( _npi  == 1 )                             { _mode=3; }  // pi
+    else if( _nK   == 1 )                             { _mode=4; }  // K
+    else if( _nrho == 1 )                             { _mode=5; }  // rho
+    
+    else if (_na1  == 1 ) {             // a1
+      nP = countResonanceParticles( tauPtr, resPtr );
+      if(        nP==3 && _nrespi==3 && _nrespi0==0)  { _mode = 11; } // a1- -> pi- pi- pi+
+      else if(  nP==3 && _nrespi==1 && _nrespi0==2)   { _mode = 12; } // a1- -> pi- pi0 pi0
+      else                                            { _mode = 13; } // other a1 decays
+    } // end-a1
+    
+    else if (_nKstarp  == 1 ) {        // K*-
+      nP = countResonanceParticles( tauPtr, resPtr );
+      if(       nP==2 && _nrespi0==1 && _nresK==1)    { _mode = 51; } // K*- -> pi0 K-
+      else if(  nP==2 && _nrespi==1  && _nresKL==1)   { _mode = 52; } // K*- -> pi- KL
+      else if(  nP==2 && _nrespi==1  && _nresKS==1)   { _mode = 53; } // K*- -> pi- KS
+      else                                            { _mode = 59; } // other K*- decays
+    }  // end-K*-
+    else                                              { _mode = 99; } // other 1-body non-W decays
     return _mode;
   } // end-NF1 non-W
 
   if( nFirst == 2 && !_wDecay )  {
-    if(      _npi==1     && _nf1==1)       { _mode = 110; }   // pi- f1
-    else if( _nK==1      && _neta==1   )   { _mode = 120; }   // K- eta
-    else if( _nKstarp==1 && _neta==1   )   { _mode = 130; }   // K*- eta
-    else if( _nK==1      && _nomega==1 )   { _mode = 140; }   // K- omega
-    else if( _nKstarp==1 && _nomega==1 )   { _mode = 150; }   // K*- omega
-    else                                   { _mode = 199; }   // other 2-body decays
+    if(      _npi==1     && _nf1==1)                  { _mode = 110; }   // pi- f1
+    else if( _nK==1      && _neta==1   )              { _mode = 120; }   // K-  eta
+    else if( _nKstarp==1 && _neta==1   )              { _mode = 130; }   // K*- eta
+    else if( _nK==1      && _nomega==1 )              { _mode = 140; }   // K-  omega
+    else if( _nKstarp==1 && _nomega==1 )              { _mode = 150; }   // K*- omega
+    else                                              { _mode = 199; }   // other 2-body decays
     return _mode;
   }
 
   if( nFirst == 3 && !_wDecay )  {
-    if(      _npi==1     && _npi0==1 && _neta==1   )   { _mode = 210; }   // pi- pi0 eta
-    else if( _npi==1     && _npi0==1 && _nomega==1 )   { _mode = 220; }   // pi- pi0 oega
-    else _mode = 299;
+    if(      _npi==1  && _npi0==1 && _neta==1   )     { _mode = 210; }   // pi- pi0 eta
+    else if( _npi==1  && _npi0==1 && _nomega==1 )     { _mode = 220; }   // pi- pi0 omega
+    else if( _nele==3                           )     { _mode = 230; }   // e- e- e+
+    else                                              { _mode = 299; }   // other 3-body decays
     return _mode;
   }
 
   if( nFirst == 4 && !_wDecay )  {
-    if(      _npi==1  && _npi0==3               )   { _mode = 301; }   // pi- 3pi0 (** none observed **) 
-    else if( _nK==1   && _npi0==3               )   { _mode = 302; }   // K-  3pi0
-    else if( _npi==1  && _npi0==1 && _nK==2     )   { _mode = 303; }   // pi- K+ K- pi0 
-    else if( _npi==1  && _npi0==2 && _neta==1   )   { _mode = 310; }   // pi- 2pi0 eta
-    else if( _npi==1  && _npi0==2 && _nomega==1 )   { _mode = 320; }   // pi- 2pi0 omega (** none observed **)
-    else if( _npi==2  && _npi0==1 && _nK==1     )   { _mode = 330; }   // pi- pi+ K- pi0 
-    else if( _npi==1  && _npi0==2 && _nK0==1    )   { _mode = 340; }   // pi- pi0 pi0 K0 
-    else if( _npi==1  && _npi0==1 && _nK0==2    )   { _mode = 350; }   // pi- pi0 K0 K0
-    else if( _npi==3  && _neta==1               )   { _mode = 360; }   // pi- pi- pi+ eta
-    else if( _npi==3  && _nomega==1             )   { _mode = 370; }   // pi- pi- pi+ omega
-    else if( _npi==3  && _nK0==1                )   { _mode = 380; }   // pi- pi- pi+ K0
-    else if( _nK==1   && _npi0==3               )   { _mode = 390; }   // K- 3pi0 
-    else _mode = 399;
+    if(      _npi==1  && _npi0==3               )     { _mode = 301; }   // pi- 3pi0 (** none observed **) 
+    else if( _nK==1   && _npi0==3               )     { _mode = 302; }   // K-  3pi0
+    else if( _npi==1  && _npi0==1 && _nK==2     )     { _mode = 303; }   // pi- K+ K- pi0 
+    else if( _npi==1  && _npi0==2 && _neta==1   )     { _mode = 310; }   // pi- 2pi0 eta
+    else if( _npi==1  && _npi0==2 && _nomega==1 )     { _mode = 320; }   // pi- 2pi0 omega (** none observed **)
+    else if( _npi==2  && _npi0==1 && _nK==1     )     { _mode = 330; }   // pi- pi+ K- pi0 
+    else if( _npi==1  && _npi0==2 && _nK0==1    )     { _mode = 340; }   // pi- pi0 pi0 K0 
+    else if( _npi==1  && _npi0==1 && _nK0==2    )     { _mode = 350; }   // pi- pi0 K0 K0
+    else if( _npi==3  && _neta==1               )     { _mode = 360; }   // pi- pi- pi+ eta
+    else if( _npi==3  && _nomega==1             )     { _mode = 370; }   // pi- pi- pi+ omega
+    else if( _npi==3  && _nK0==1                )     { _mode = 380; }   // pi- pi- pi+ K0
+    else if( _nK==1   && _npi0==3               )     { _mode = 390; }   // K- 3pi0 
+    else                                              { _mode = 399; }   // other 4-body decays
     return _mode;
   }
 
   if( nFirst >= 5 && !_wDecay )  {
-    if( _npi==1  && _npi0==4 )   { _mode = 401; }   // pi- 4pi0 
-    else  _mode = 499;
+    if( _npi==1  && _npi0==4 )                        { _mode = 401; }   // pi- 4pi0 
+    else                                              { _mode = 499; }   // other 5-body decays
     return _mode;
   }
 
-  if( _wDecay ) std::cout << "===>RJS: W-decay nFirst = " << nFirst 
-                         << " (pi pi0) = " << _npi << _npi0 << std::endl;
+  //  if( _wDecay ) std::cout << "===>RJS: W-decay nFirst = " << nFirst 
+  //                       << " (pi pi0) = " << _npi << _npi0 << std::endl;
 
   // ---------------------------------------------------------------------
   // W decays
@@ -422,6 +417,7 @@ int TauDecayMode::getDecayMode( int tauPtr )
     else if( _nK==1  && _nKL==1    )          { _mode = 1230; } // W -> K- KL
     else if( _nK==1  && _nKS==1    )          { _mode = 1240; } // W -> K- KS
     else                                      { _mode = 1299; } // other 2-body W-decays
+    return _mode;
   }
 
   // Notes: 
@@ -429,28 +425,30 @@ int TauDecayMode::getDecayMode( int tauPtr )
   // (ii)  pi- KL KL and pi- KS KS are odd decays
   // (iii) no K-K-K+ decays observed in the MC
   if( nFirst == 3 && _wDecay ) {             
-    if(       _npi==1 && _npi0==1 && _neta==1   )     { _mode = 1300; } // W -> pi- pi0 eta
-    else if( _npi==1 && _npi0==1 && _neta==1   )     { _mode = 1310; } // W -> pi- pi0 omega
-    else if( _npi==1 && _npi0==1 && _nKL==1    )     { _mode = 1320; } // W -> pi- pi0 KL
-    else if( _npi==1 && _npi0==1 && _nKS==1    )     { _mode = 1321; } // W -> pi- pi0 KS
-    else if( _npi==1 && _nKL==1  && _nKS==1    )     { _mode = 1330; } // W -> pi- KL KS
-    else if( _npi==1 && _nKL==2                )     { _mode = 1331; } // W -> pi- KL KL
-    else if( _npi==1 && _nKS==2                )     { _mode = 1332; } // W -> pi- KS KS
-    else if( _npi==1 && _nK==2                 )     { _mode = 1335; } // W -> pi- K- K+
+    if(      _npi==1 && _npi0==1 && _neta==1 )     { _mode = 1300; } // W -> pi- pi0 eta
+    else if( _npi==1 && _npi0==1 && _neta==1 )     { _mode = 1310; } // W -> pi- pi0 omega
+    else if( _npi==1 && _npi0==1 && _nKL==1  )     { _mode = 1320; } // W -> pi- pi0 KL
+    else if( _npi==1 && _npi0==1 && _nKS==1  )     { _mode = 1321; } // W -> pi- pi0 KS
+    else if( _npi==1 && _nKL==1  && _nKS==1  )     { _mode = 1330; } // W -> pi- KL KS
+    else if( _npi==1 && _nKL==2              )     { _mode = 1331; } // W -> pi- KL KL
+    else if( _npi==1 && _nKS==2              )     { _mode = 1332; } // W -> pi- KS KS
+    else if( _npi==1 && _nK==2               )     { _mode = 1335; } // W -> pi- K- K+
     
-    else if( _nK==1  && _npi==2                )     { _mode = 1340; } // W -> K-  pi+ pi-
-    else if( _nK==1  && _npi0==2               )     { _mode = 1341; } // W -> K-  pi0 pi0
-    else if( _nK==1  && _npi0==1 && _nKL==1    )     { _mode = 1350; } // W -> K-  pi0 KL
-    else if( _nK==1  && _npi0==1 && _nKS==1    )     { _mode = 1351; } // W -> K-  pi0 KS
+    else if( _nK==1  && _npi==2              )     { _mode = 1340; } // W -> K-  pi+ pi-
+    else if( _nK==1  && _npi0==2             )     { _mode = 1341; } // W -> K-  pi0 pi0
+    else if( _nK==1  && _npi0==1 && _nKL==1  )     { _mode = 1350; } // W -> K-  pi0 KL
+    else if( _nK==1  && _npi0==1 && _nKS==1  )     { _mode = 1351; } // W -> K-  pi0 KS
     
-    else if( _nK==3                            )     { _mode = 1360; } // W -> K-  K- K+ (** none observed **)
-    else                                             { _mode = 1399; } // other 3-body W-decays
+    else if( _nK==3                          )     { _mode = 1360; } // W -> K-  K- K+ (** none observed **)
+    else                                           { _mode = 1399; } // other 3-body W-decays
+    return _mode;
   }
 
   if( nFirst == 4 && _wDecay ) {             
     if(      _npi==1 && _npi0==3 )    { _mode = 1400; } // W -> pi 3pi0
     else if( _npi==3 && _npi0==1 )    { _mode = 1410; } // W -> 3pi pi0
     else                              { _mode = 1499; } // other 4-body W-decays
+    return _mode;
   }
   
   if( nFirst == 5 && _wDecay ) {             
@@ -458,405 +456,23 @@ int TauDecayMode::getDecayMode( int tauPtr )
     else if( _npi==3 && _npi0==2 )    { _mode = 1510; } // W -> 3pi 2pi0 
     else if( _npi==1 && _npi0==4 )    { _mode = 1520; } // W ->  pi 4pi0
     else                              { _mode = 1599; } // other 5-body W-decays
+    return _mode;
   }
 
   if( nFirst == 6 && _wDecay ) {
     if(      _npi==5 && _npi0==1  )   { _mode = 1600; } // W -> 5pi  pi0
     else if( _npi==3 && _npi0==3  )   { _mode = 1610; } // W -> 3pi 3pi0
     else                              { _mode = 1699; } // other 6-body W-decays
+    return _mode;
   }
 
-  if( nFirst >= 7 && _wDecay )          _mode = 1700;
+  if( nFirst >= 7 && _wDecay ) {
+    _mode = 1799;
+    return _mode;
+  }
 
 
   return _mode;
-
-
-    if( nFirst == 1 && _wDecay ) {              // W -> quark-quark 
-       countResonanceParticles( tauPtr, wPtr );
-       int Strange =   (_nresK >=1   || _nresKS >=1 || _nresKL >=1);
-       int Resonance = (_nreseta >=1 || _nresetap >=1);
-
-       // pi- npi0
-       if( _nrespi==1 && !Strange && !Resonance ) {
-          if(       _nrespi0==2 )                 { _mode = 21; } // W -> pi 2pi0
-           else if( _nrespi0==3 )                 { _mode = 22; } // W -> pi 3pi0
-           else if( _nrespi0>=4 )                 { _mode = 23; } // W -> pi 4pi0
-           else if( _nrespi0==1 && _nresgam>=1  ) { _mode = 24; } // W -> pi- pi0 gamma
-           else                                   { _mode =-25; } // other W -> pi decays
-       }
-
-       // 3pi- npi0
-       if( _nrespi==3 && !Strange && !Resonance ) {
-          if(       _nrespi0==1 )                 { _mode = 31; } // W -> 3pi pi0
-           else if( _nrespi0==2 )                 { _mode = 32; } // W -> 3pi 2pi0
-           else if( _nrespi0>=3 )                 { _mode = 33; } // W -> 3pi 3pi0
-           else                                   { _mode =-35; } // other W -> 3pi decays
-       }
-
-       // pi- eta
-       if( _nrespi==1 &&_nreseta==1 && !Strange && Resonance ) {
-          if(       _nrespi0==0 )                 { _mode = 110; } // W -> eta pi- 
-           else if( _nrespi0==1 )                 { _mode = 120; } // W -> eta pi- pi0
-           else if( _nrespi0>=2 )                 { _mode = 130; } // W -> eta pi- 2pi0
-           else                                   { _mode =-140; } // other W -> pi- eta decays
-       }
-
-       // 3pi- eta
-       if( _nrespi==3 &&_nreseta==1 && !Strange && Resonance ) {
-          if(       _nrespi0==0 )                 { _mode = 150; } // W -> eta 3pi-
-           else if( _nrespi0==1 )                 { _mode = 160; } // W -> eta 3pi- pi0
-           else if( _nrespi0>=2 )                 { _mode = 170; } // W -> eta 3pi- 2pi0
-           else                                   { _mode =-180; } // other W -> 3pi- eta decays
-       }
-
-       // pi- omega 
-       if( _nrespi==1 &&_nresomega==1 && !Strange && Resonance ) {
-          if(       _nrespi0==0 )                 { _mode = 210; } // W -> omega pi-
-           else if( _nrespi0==1 )                 { _mode = 220; } // W -> omega pi- pi0
-           else if( _nrespi0>=2 )                 { _mode = 230; } // W -> omega pi- 2pi0
-           else                                   { _mode =-240; } // other W -> pi- omega decays
-       }
-
-       // 3pi- omega
-       if( _nrespi==3 &&_nresomega==1 && !Strange && Resonance ) {
-          if(       _nrespi0==0 )                 { _mode = 250; } // W -> omega 3pi-
-           else if( _nrespi0==1 )                 { _mode = 260; } // W -> omega 3pi- pi0
-           else if( _nrespi0>=2 )                 { _mode = 270; } // W -> omega 3pi- 2pi0
-           else                                   { _mode =-280; } // other W -> 3pi- omega decays
-       }
-
-       // pi- eta'
-       if( _nrespi==3 &&_nresetap==1 && !Strange && Resonance ) {
-         if(        _nrespi0==0 )                 { _mode = 310; } // W -> eta' pi-
-           else if( _nrespi0>=1 )                 { _mode = 320; } // W -> eta' pi- pi0
-           else                                   { _mode =-330; } // other W -> eta' pi-  decays
-        }
-
-       // pi pi K
-       if( (_nrespi+_nrespi0)==2 && Strange && !Resonance ) {
-          if(      _nrespi==1 && _nrespi0==1 && _nresK==0 && _nresKS==1 && _nresKL==0) {_mode=410;} // pi- pi0 KS
-          else if( _nrespi==1 && _nrespi0==1 && _nresK==0 && _nresKS==0 && _nresKL==1) {_mode=420;} // pi- pi0 KL
-          else if( _nrespi==2 && _nrespi0==0 && _nresK==1 && _nresKS==0 && _nresKL==0) {_mode=430;} // pi- pi+ K-
-          else if( _nrespi==0 && _nrespi0==2 && _nresK==1 && _nresKS==0 && _nresKL==0) {_mode=440;} // pi0 pi0 K-
-          else {_mode=-450;} // *** CAREFUL WITH THIS ONE - MAY PICK UP THE WRONG DECAYS ***
-          // PUT THE (pi K K) and (K K) decays in this subsection
-       }
-
-       // pi K K (mode 520, 540 or 560 observed so far)
-       if( !Resonance ) {
-         if(        _nrespi==1 && _nrespi0==0 && _nresK==2 && _nresKS==0 && _nresKL==0 )  {_mode=510;} // K- K+ pi- 
-           else if( _nrespi==1 && _nrespi0==1 && _nresK==2 && _nresKS==0 && _nresKL==0 )  {_mode=520;} // K- K+ pi- pi0
-
-         if(        _nrespi==0 && _nrespi0==1 && _nresK==1 && _nresKS==1 && _nresKL==0 )  {_mode=530;} // K- KS pi0
-          else if ( _nrespi==0 && _nrespi0==2 && _nresK==1 && _nresKS==1 && _nresKL==0 )  {_mode=540;} // K- KS pi0 pi0
-          else if ( _nrespi==0 && _nrespi0==1 && _nresK==1 && _nresKS==0 && _nresKL==1 )  {_mode=550;} // K- KL pi0 
-          else if ( _nrespi==0 && _nrespi0==2 && _nresK==1 && _nresKS==0 && _nresKL==1 )  {_mode=560;} // K- KL pi0 pi0
-
-         if(        _nrespi==0 && _nrespi0==0 && _nresK==1 && _nresKS==1 && _nresKL==0 )  {_mode=610;} // K- KS
-           else if( _nrespi==0 && _nrespi0==0 && _nresK==1 && _nresKS==0 && _nresKL==1 )  {_mode=620;} // K- KL
-
-         if(        _nrespi==1 && _nrespi0==0 && _nresK==0 && _nresKS==1 && _nresKL==1 )  {_mode=710;} // pi- KS KL
-          else if ( _nrespi==1 && _nrespi0==0 && _nresK==0 && _nresKS==2 && _nresKL==0 )  {_mode=720;} // pi- KS KS
-          else if ( _nrespi==1 && _nrespi0==0 && _nresK==0 && _nresKS==0 && _nresKL==2 )  {_mode=730;} // pi- KL KL
-       }
-
-       if( !Resonance && !Strange ) {
-        if(        _nrespi==5 && _nrespi0==0 ) {_mode=810;} // 3pi- 2pi+
-         else if(  _nrespi==5 && _nrespi0==1 ) {_mode=820;} // 3pi- 2pi+ pi0
-       }
-
-
-     } // end-W
-   
-   // K*
-   else if (_nKstarp  == 1 ) {             // kstar
-        countResonanceParticles( tauPtr, kstarPtr ); 
-        if(      _nrespi==1 && _nrespi0==0 && _nresKS==1 && _nresKL==0 && _nresK==0) {_mode=910;} // pi- KS
-        else if( _nrespi==1 && _nrespi0==0 && _nresKS==0 && _nresKL==1 && _nresK==0) {_mode=920;} // pi- KL
-        else if( _nrespi==0 && _nrespi0==1 && _nresKS==0 && _nresKL==0 && _nresK==1) {_mode=930;} // pi0 K-
-        else {_mode=-940;} // other kstar decays
-   }
-
-
-   if( _mode ==0 ) _mode = 999;
-  
-
-  std::cout << "===>RJS: temporary exit with mode = " << _mode << std::endl;
-  return _mode;
-
-  // ---------------------------------------------------
-  // 2-body decays (excluding neutrinos and photons)
-  // ---------------------------------------------------
-  if( nFirst == 2 ) {
-   if(       _npi==1 && _nf1==1      ) { _mode=1010; }   // pi- f1
-    else if( _nK==1 && _neta==1      ) { _mode=1020; }   // K- eta
-    else if( _nK==1 && _nomega==1    ) { _mode=1030; }   // K- omega
-    else if( _nKstarp==1 && _neta==1 ) { _mode=1040; }   // K*- eta
-    else { _mode=-1050; }   // other 2-body decays
-
-   if(_mode==0 )  _mode = 2000;
-  }
-
-
-  // ---------------------------------------------------
-  // 3-body decays (excluding neutrinos and photons)
-  // ---------------------------------------------------
-  if( nFirst == 3 ) {
-   if(  _npi==1 && _npi0==1 && _nomega==1 ) { _mode=1110; }   // pi- pi0 omega
-   if(  _npi==1 && _npi0==2 )               { _mode=1120; }   // pi- 2pi0 
-
-   if( _mode==0 ) _mode = 3000;
-  }
-
-  // ---------------------------------------------------
-  // 4-body decays (excluding neutrinos and photons)
-  // ---------------------------------------------------
-  if( nFirst == 4 ) {
-   if(  _npi==3 && _neta==1 )             { _mode=1210; }   // pi- pi- pi+ eta
-   if(  _npi==1 && _npi0==2 && _neta==1 ) { _mode=1220; }   // pi- 2pi0  eta
-   if(  _npi==1 && _npi0==2 && _nomega==1){ _mode=1230; }   // pi- 2pi0  omega
-   if(  _npi==1 && _npi0==1 && _nK==2   ) { _mode=1240; }   // pi- K+ K- pi0  eta (** check charge state)
-   if(  _nK==1  && _npi0==3 )             { _mode=1250; }   // pi- K+ K- pi0  eta (** check charge state)
-
-   if(  _npi==3 && _nK0==1  )             { _mode=1260; }   // pi- pi- pi+ K0
-   if(  _npi==2 && _npi0==1 && _nK==1 )   { _mode=1270; }   // pi- pi+ pi0 K-     (** check charge state)
-   if(  _npi==1 && _npi0==1 && _nK0==2 )  { _mode=1280; }   // pi- pi0 K0 K0
-   if(  _npi==1 && _npi0==2 && _nK0==1 )  { _mode=1290; }   // pi- pi0 pi0 K0
-
-   if( _mode==0 ) _mode = 4000;
-  }
-
-
-  // ---------------------------------------------------
-  // 5-body decays (excluding neutrinos and photons)
-  // ---------------------------------------------------
-  if( nFirst == 5 ) {
-   if(  _npi==1 && _npi0==4 )            { _mode=1310; }   // pi- 4pi0
-
-   if( _mode==0 ) _mode = 5000;
-  }
-
-
-  if( _mode==0) _mode=9999;
-
-  return _mode;
-
-// ***************************************************************************************
-
-
-  // K-(321), K0(311) and K*-(892)(323) are primary final states
-
-  if( _nKL!=0 || _nKS!=0 || _nKstar0!=0 )
-    std::cout << "===>RJS: Strange Decay in primary chain XXX" << std::endl;
-
-  // check for multiple resonances in final state
-  if( _nK0>1 || _nKstarp>1 || _na1>1 || _nw>1 ) 
-    std::cout << "===>RJS: multple particles in final state (K0,K*-,a1,W)= "
-              << _nK0 << _nKstarp << _na1 << _nw << std::endl;
-
-  // what are the eta(221), omega(223) and f1(20223) decays? (K-eta)
-  // (pi- pi0 eta), (pi- 2pi0 eta),(3pi- eta), (K- eta), (K*- eta)
-  // (pi- pi0 omega), (K- omega)
-  // (pi- f1)
-
-  if( _nomega==1 || _neta==1 || _nf1==1 ) 
-   std::cout << "===>RJS: what are these decays? " <<_nomega << _neta << _nf1 << std::endl;
-
-  // test new function
-  if( _na1==1) countMesons( tauPtr, resPtr );
-
-
-  // -------------------------------------------
-  // identify primary decays modes
-  // -------------------------------------------
-  _mode = 0;
-  bool electron    = _nnue==1 && _nele==1 && _nnum==0 && _nmu==0;
-  bool muon        = _nnue==0 && _nele==0 && _nnum==1 && _nmu==1;
-  bool noLepton    = _nnue==0 && _nele==0 && _nnum==0 && _nmu==0;
-  bool noMeson     = _npi==0  && _npi0==0 && _nK==0   && _nrho==0;
-  bool noResonance = _na1==0  && _neta==0 && _nomega==0 && _nf1==0 && _nK0==0 && _nKstarp==0 && _nw==0;
-
-
-  if( noResonance ) {
-    if(       noMeson && electron  )                                   { _mode=10; } // e
-     else if( noMeson && muon )                                        { _mode=20; } // mu
-     else if( noLepton && _npi==1 && _npi0==0 && _nK==0 && _nrho==0 )  { _mode=30; } // pi
-     else if( noLepton && _npi==0 && _npi0==0 && _nK==1 && _nrho==0 )  { _mode=40; } // K
-     else if( noLepton && _npi==0 && _npi0==0 && _nK==0 && _nrho==1 )  { _mode=50; } // rho
-     else {std::cout << "===>RJS: unknown noResonant decay mode" << std::endl;}
-     return _mode;
-  }
-
-
-
-// ----------------------------------------------------------------
-// Resonance decays
-// (not handling 2KS decays)
-// ----------------------------------------------------------------
-  _Strange = false;
-  _nrespi=0;  _nrespi0=0; _nresgam=0; _nresK=0; _nresKS=0; _nresKL=0; _nreseta=0; _nresetap=0;
-  if( _nw==1 || _na1==1 || _nKS==1 || _nKstar0==1 || _nKstarp==1) {
-     std::vector<Belle2::MCParticle*> rDaugVector = tauDaugVector[resPtr]->getDaughters();  
-     for(unsigned int i=0; i<rDaugVector.size(); i++) {
-        std::cout << i << " pid = " << rDaugVector[i]->getPDG() << std::endl;
-        if( abs(rDaugVector[i]->getPDG()) == abs(PdtLund::pi_plus   ) ) _nrespi++;
-        if( abs(rDaugVector[i]->getPDG()) == abs(PdtLund::pi0       ) ) _nrespi0++;
-        if( abs(rDaugVector[i]->getPDG()) == abs(PdtLund::gamma     ) ) _nresgam++;
-        if( abs(rDaugVector[i]->getPDG()) == abs(PdtLund::eta       ) ) _nreseta++;
-        if( abs(rDaugVector[i]->getPDG()) == abs(PdtLund::eta_prime ) ) _nresetap++;
-        if( abs(rDaugVector[i]->getPDG()) == abs(PdtLund::K_plus    ) ) _nresK++;
-        if( abs(rDaugVector[i]->getPDG()) == abs(PdtLund::K_S0      ) ) _nresKS++;
-        if( abs(rDaugVector[i]->getPDG()) == abs(PdtLund::K_L0      ) ) _nresKL++;
-     }
-   if( _nresK!=0 || _nresKS!=0 || _nresKL!=0) _Strange = true;
-       std::cout << std::setw(3) << std::setprecision(0);
-       std::cout << "Resonance (g) (pi pi0 eta etap) (K KS KL) = " 
-             << std::setw(3) << _nresgam 
-             << std::setw(3) << _nrespi << _nrespi0 << _nreseta << _nresetap
-             << std::setw(3) << _nresK  << _nresKS << _nresKL
-             << " Strange = " << _Strange
-             << std::endl;
-
-    // -------------------------------------------
-    // W -> non-strange decays
-    // -------------------------------------------
-    if( _nw == 1 && !_Strange ) {
-
-      if( _nrespi==1 ) {
-          if(      _nrespi0==2 )                 { return (int) 21; } // W -> pi 2pi0
-          else if( _nrespi0==3 )                 { return (int) 22; } // W -> pi 3pi0
-          else if( _nrespi0>=4 )                 { return (int) 23; } // W -> pi 4pi0
-          else if( _nrespi0==1 && _nresgam>=1  ) { return (int) 24; } // W -> pi- pi0 gamma
-          else if( _nrespi0==1 && _nreseta==1  ) { return (int) 25; } // W -> eta pi- pi0
-          else if( _nrespi0==1 && _nresetap==1 ) { return (int) 26; } // W -> eta' pi- 
-          else { return (int)-27; }                   // other W -> pi decays
-       }  else if( _nrespi==3 ) {
-          if(      _nrespi0==1 ) { return (int) 31; } // W -> 3pi pi0
-          else if( _nrespi0==2 ) { return (int) 32; } // W -> 3pi 2pi0
-          else if( _nrespi0>=3 ) { return (int) 33; } // W -> 3pi 3pi0
-          else { return (int)-34; }                   // other W -> 3pi decays
-       }  else if( _nrespi==5 ) {
-          if(      _nrespi0==0 ) { return (int) 35; } // W -> 5pi
-          else if( _nrespi0==1 ) { return (int) 36; } // W -> 5pi pi0
-          else if( _nrespi0>=2 ) { return (int) 37; } // W -> 5pi 2pi0
-          else { return (int)-38; }                   // other W -> 5pi decays
-       }  else { return (int)-39; }                   // unknown W decays
-
-    } // end of non-strange W decays
-
-    // -------------------------------------------
-    // W -> strange decays (excl K* mesons)
-    // -------------------------------------------
-    if( _nw == 1 && _Strange ) {
-
-      // *** this will include all charge combinations eg (K- pi- pi+)  ***
-      if( _nresK==1 && _nresKS==0 && _nresKL==0 && _nrespi==2 ) {
-          if(       _nrespi0==0 )  { return (int)71; }  // W -> K+ pi- pi-
-           else if( _nrespi0==1 )  { return (int)72; }  // W -> K+ pi- pi- pi0
-           else { return (int)-73; } // unknown decay
-       }
-
-      // *** this will include all charge combinations eg (K- K- pi+) ***
-       if( _nresK==2 && _nresKS==0 && _nresKL==0 && _nrespi==1 ) {
-          if(       _nrespi0==0 )  { return (int)74; }  // W -> K+ K- pi-
-           else if( _nrespi0==1 )  { return (int)75; }  // W -> K+ K- pi- pi0
-           else { return (int)-76; } // unknown decay
-       }
-
-     if( _nresK==3 && _nresKS==0 && _nresKL==0 && _nrespi==0 ) {
-          if(       _nrespi0==0 )  { return (int)77; }  // W -> K+ K- K-
-           else if( _nrespi0==1 )  { return (int)78; }  // W -> K+ K- K- pi0
-           else { return (int)-79; } // unknown decay
-       }
-
-      if( _nresK==1 && _nresKS==1 && _nresKL==0 && _nrespi==0 ) {
-          if(       _nrespi0==0 )  { return (int)81; }  // W -> K+ KS
-           else if( _nrespi0==1 )  { return (int)82; }  // W -> K+ KS pi0 
-           else { return (int)-83; } // unknown decay
-       }
-
-       if( _nresK==1 && _nresKL==1 && _nresKS==0 && _nrespi==0 ) {
-          if(       _nrespi0==0 )  { return (int)84; }  // W -> K+ KL 
-           else if( _nrespi0==1 )  { return (int)85; }  // W -> K+ KL pi0
-           else { return (int)-86; } // unknown decay
-       }
-
-       if( _nresK==0 && _nresKL==1 && _nresKS==1 && _nrespi==1 ) {
-          if(       _nrespi0==0 )  { return (int)87; }  // W -> pi- KS KL (non-resonant)
-           else if( _nrespi0==1 )  { return (int)88; }  // W -> pi- KS KL pi0 (non-resonant)
-           else { return (int)-89; } // unknown decay
-       }
-
-       if( _nresK==1 && _nresKS==1 && _nresKL==0 && _nrespi==0 ) {
-          if(       _nrespi0==0 )  { return (int)91; }  // W -> K- KS
-           else if( _nrespi0==1 )  { return (int)92; }  // W -> K- KS pi0
-           else { return (int)-93; } // unknown decay
-       }
-
-      if( _nresK==1 && _nresKS==0 && _nresKL==1 && _nrespi==0 ) {
-          if(       _nrespi0==0 )  { return (int)94; }  // W -> K- KL
-           else if( _nrespi0==1 )  { return (int)95; }  // W -> K- KL pi0
-           else { return (int)-96; } // unknown decay
-       }
-
- 
-    } // end of strange W decays
-
-    // -------------------------------------------
-    // a1 decays
-    // -------------------------------------------
-    if( _na1==1) {
-        if(      _nrespi==3 && _nrespi0==0 ) { return (int) 15; } // a1- -> 2pi- pi+
-        else if( _nrespi==1 && _nrespi0==2 ) { return (int) 16; } // a1- -> pi- 2pi0
-        else { return (int)-17; }  // other a1 decays
-    }
-
-   // -------------------------------------------
-   // KS decays
-   // -------------------------------------------
-   if( _nKS==1) {
-        if(      _nrespi==2 && _nrespi0==0 ) { return (int) 31; } // KS -> pi- pi+
-        else if( _nrespi==0 && _nrespi0==2 ) { return (int) 32; } // KS -> 2pi0
-        else { return (int)-33; }  // other KS decays
-    }
-   if( _nKS==2) return (int)-34; // 2KS decay mode
-   
-
-   // -------------------------------------------
-   // Kstar decays
-   // -------------------------------------------
-   if( _nKstar0==1) {
-        if(      _nresK==1  && _nrespi==1 && _nrespi0==0 ) { return (int) 51; } // Kstar0 -> K- pi-
-        else if( _nresKS==1 && _nrespi==0 && _nrespi0==1 ) { return (int) 52; } // Kstar0 -> KS0 pi0
-        else if( _nresKL==1 && _nrespi==0 && _nrespi0==1 ) { return (int) 53; } // Kstar0 -> KL0 pi0
-        else { return (int)-54; }  // other Kstar0 decays
-    }
-
-   if( _nKstarp==1) {
-        if(      _nresK ==1 && _nrespi==0 && _nrespi0==1 ) { return (int) 61; } // Kstar+ -> K- pi0
-        else if( _nresKS==1 && _nrespi==1 && _nrespi0==0 ) { return (int) 62; } // Kstar+ -> KS0 pi-
-        else if( _nresKL==1 && _nrespi==1 && _nrespi0==0 ) { return (int) 63; } // Kstar+ -> KL0 pi-
-        else { return (int)-64; }  // other Kstar0 decays
-    }
-
-  } //end of resonance section
-
-   
-// ----------------------------------------------------------------
-// ----------------------------------------------------------------
-  if( _nnue==1 && _nele==1)  return (int)1;   // e 
-  if( _nnum==1 && _nmu==1 )  return (int)2;   // mu
-  if( _npi==1)               return (int)3;   // pi-
-  if( _nrho==1)              return (int)4;   // rho-
-
-  // -------------------------------------------
-  // charged kaon decays
-  // -------------------------------------------
-  if( _nK==1 && _npi==0 && _npi0==0) return (int)40;  // K-
-
-
-  return (int)99;
 }
 
 // *******************************************************************

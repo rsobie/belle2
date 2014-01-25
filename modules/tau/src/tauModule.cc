@@ -87,18 +87,18 @@ void tauModule::event()
   int tauPlus  = myMode.getTauMCID( (int)1);
   int tauMinus = myMode.getTauMCID( (int)-1);
 
-  int nProngsPlus  = myMode.getNumberProngs( tauPlus);
-  int nProngsMinus = myMode.getNumberProngs( tauMinus);
+  //  int nProngsPlus  = myMode.getNumberProngs( tauPlus);
+  //  int nProngsMinus = myMode.getNumberProngs( tauMinus);
   // std::cout << "nprongs = " << nProngsPlus <<" "<< nProngsMinus << std::endl;
 
   //myMode.printTauMCInfo( tauPlus );
   //myMode.printTauMCInfo( tauMinus );
 
   int tmp1 = myMode.getDecayMode ( tauPlus );
-  if(tmp1==499 ) myMode.printFinalState( tauPlus );
+  if(tmp1==299 ) myMode.printFinalState( tauPlus );
 
   int tmp2 = myMode.getDecayMode ( tauMinus );
-  if(tmp2==499 ) myMode.printFinalState( tauMinus );
+  if(tmp2==299 ) myMode.printFinalState( tauMinus );
 
   std::cout << "tau decay modes : " << tmp1 <<" "<< tmp2 << std::endl;
 
